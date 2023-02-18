@@ -1,0 +1,35 @@
+QT is used for configuration (1) only. The image is only shown once START button is clicked, and QT is terminated after image is shown.
+
+
+
+
+
+(1) configuration includes:
+Mô hình thì chọn detection hoặc segmentation
+Và mỗi cái đó sẽ chỉ có một model thôi
+Mình sẽ chọn cái tốt nhất cho detection và tốt nhất cho segmentation
+Sau đó cho chọn threshold (chỉ dùng cho detection)
+Chọn ROI
+À, còn có model phân loại lành ác nữa
+Checkbox: Phân loại lành ác
+như vậy có 4 models tất cả
+detect polyp chung, detect polyp lành ác, segment polpy chung, segment polyp lành ác
+với mỗi option thì cách hiển thị cũng khác nhau
+lành ác thì vẽ ra xanh đỏ
+còn chung thì vẽ ra một màu thôi
+
+- selection of cropped area for the recogntion. But the view is shown in full in the display. (Mr. An has probably done it).
+
+
+
+
+(2):
+- mô hình của anh Sơn:
+	- không chạy được trực tiếp từ onnx => thầy bảo thử đổi opset (12/14/17...)
+	- không convert được từ onnx sang trt
+	- convert được từ saved-model sang tf-trt
+- mô hình của anh Thuận:
+	- chạy trực tiếp từ onnx được (repvgg)
+	- convert được từ onnx sang trt
+	- chạy được trt nhưng bị tụt độ chính xác, không khả dụng
+	
