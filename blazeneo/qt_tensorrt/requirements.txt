@@ -1,0 +1,30 @@
+albumentations==1.2.1
+tqdm==4.64.1
+torchvision==0.14.0
+torchsummary==1.5.1
+torch==1.13.0
+tensorrt==8.4.0.11
+scipy==1.9.3
+scikit-learn==1.1.3
+scikit-image==0.19.3
+PyYAML==5.3.1
+PyQt5==5.14.1
+protobuf==3.20.1
+onnx==1.12.0
+opencv-contrib-python==4.5.4.60
+opencv-python==4.5.4.60
+opencv-python-headless==4.6.0.66
+numpy==1.19.5
+matplotlib==3.6.2
+graphsurgeon==0.4.6
+
+
+onnxconverter-common==1.13.0
+onnxruntime-gpu==1.12.1
+tf2onnx==1.13.0
+keras2onnx==1.7.0
+h5py==3.6.0
+tensorrt==0.0.1
+pycuda==2022.1
+# Do not install onnxruntime, or else must uninstall it. Then install onnxruntime-gpu here https://elinux.org/Jetson_Zoo#ONNX_Runtime, then downgrade protobuf to 3.20.0
+# https://docs.nvidia.com/deeplearning/frameworks/install-tf-jetson-platform/index.html
