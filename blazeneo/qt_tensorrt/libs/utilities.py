@@ -64,14 +64,27 @@ class Preprocess:
             # bgr + hwc
             image = cv2.resize(image, (self.width, self.height))
             image = image.astype(np.float32)
-        elif self.mode == 5:
+        elif self.mode == 5:    # anh Thuan
             # resize + BGR + normalize [0, 1] + CHW
             image = cv2.resize(image, (self.width, self.height))
             image = np.float32(image) / 255.
             image = np.moveaxis(image, 2, 0)
-        elif self.mode == 6:
+        elif self.mode == 6:    # anh Son
             # resize + RGB + normalize [0, 1] + HWC
-            image = cv2.resize(image, (self.width, self.height))
+
+            def resize(size, image):
+                h, w, c = image.shape
+                scale_w = size / w
+                scale_h = size / h
+                scale = min(scale_w, scale_h)
+                h = int(h * scale)
+                w = int(w * scale)
+                padimg = np.zeros((size, size, c), image.dtype)
+                padimg[:h, :w] = cv2.resize(image, (w, h))
+                return padimg
+
+            # image = cv2.resize(image, (self.width, self.height))
+            image = resize(self.height, image)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             image = np.float32(image) / 255.
 
@@ -130,19 +143,30 @@ class Postprocess:
         # detection
         elif self.mode == 3:
 
-            def _rescale_boxes(out_size, im_shape, boxes):
+            # def _rescale_boxes(out_size, im_shape, boxes):
                 
-                ow, oh = out_size
+            #     ow, oh = out_size
+            #     w, h = im_shape
+                
+            #     scale_w = ow / w
+            #     scale_h = oh / h
+            #     new_anns = []
+            #     for box in boxes:
+            #         xmin = int(box[0] / scale_w)
+            #         ymin = int(box[1] / scale_h)
+            #         xmax = int(box[2] / scale_w)
+            #         ymax = int(box[3] / scale_h)
+            #         new_anns.append([xmin, ymin, xmax, ymax])
+            #     return np.array(new_anns)
+
+            def _rescale_boxes(size, im_shape, boxes):
                 w, h = im_shape
-                
-                scale_w = ow / w
-                scale_h = oh / h
+                scale_w = size / w
+                scale_h = size / h
+                scale = min(scale_w, scale_h)
                 new_anns = []
                 for box in boxes:
-                    xmin = int(box[0] / scale_w)
-                    ymin = int(box[1] / scale_h)
-                    xmax = int(box[2] / scale_w)
-                    ymax = int(box[3] / scale_h)
+                    xmin, ymin, xmax, ymax = [int(p/scale) for p in box]
                     new_anns.append([xmin, ymin, xmax, ymax])
                 return np.array(new_anns)
 
@@ -180,7 +204,7 @@ class Postprocess:
             h, w = self.y_end - self.y_start, self.x_end - self.x_start
             boxes[:, [0, 2]] *= self.width
             boxes[:, [1, 3]] *= self.height
-            boxes = _rescale_boxes((self.width, self.height), (w, h), boxes)
+            boxes = _rescale_boxes(self.height, (w, h), boxes)
             idxs = np.where(scores > self.threshold)
             boxes, scores, class_ids = boxes[idxs], scores[idxs], class_ids[idxs]
             class_names = [self.class_labels[c] for c in class_ids]

@@ -7,12 +7,16 @@ import json
 from queue import Queue
 from threading import Thread, Lock
 import logging
+from pathlib import Path
 import tensorrt as trt
 import pycuda.driver as cuda
 import pycuda.autoinit  # critical, need it though not calling
 
 from .common import load_engine, allocate_buffers, TRT_LOGGER, do_inference
 from .fps import FPS
+
+
+HERE = Path(__file__).parent
 
 
 logging.basicConfig(
@@ -65,6 +69,7 @@ class Streamming:
     def __init__(self, config):
 
         self.cfg = config
+        self.frame_count = 0
 
         self.capture = cv2.VideoCapture(self.cfg.source)
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.cfg.camera_height)
@@ -77,8 +82,9 @@ class Streamming:
             return False, None
 
         (ret, frame) = self.capture.read()
-        # if ret:
-        #     frame = cv2.resize(frame, (self.cfg.camera_width, self.cfg.camera_height))
+
+        self.frame_count += 1
+        logging.debug(f'Reading frame {self.frame_count}')
 
         return ret, frame
 
@@ -316,7 +322,7 @@ class Displaying:
 
         self.cfg = config
 
-        self.save_video = False
+        self.save_video = False # True
         self.__setupSaveVideo()
 
         self.__setupWindow()
@@ -334,6 +340,8 @@ class Displaying:
         
         if self.save_video:
             self.out_video.write(image)
+            logging.debug('Saving frame to video')
+
 
 
     def __setupWindow(self):
@@ -345,8 +353,9 @@ class Displaying:
         cv2.destroyAllWindows()
         if self.save_video:
             self.out_video.release()
+            logging.info(f'Video saved to {HERE / "out_video.avi"}')
 
     def __setupSaveVideo(self):
         if self.save_video:
             logging.info('Saving video')
-            self.out_video = cv2.VideoWriter('out_video.avi', cv2.VideoWriter_fourcc(*'XVID'), 30.0, (self.cfg.camera_width, self.cfg.camera_height))
+            self.out_video = cv2.VideoWriter('out_video.avi', cv2.VideoWriter_fourcc(*'XVID'), 15.0, (self.cfg.camera_width, self.cfg.camera_height))

@@ -61,7 +61,7 @@ def get_input(config):
     label_model = QtWidgets.QLabel('Chọn loại mô hình:')
     layout_option_selections.addWidget(label_model, 1, 1)
 
-    label_thresh = QtWidgets.QLabel('Chọn ngưỡng:')
+    label_thresh = QtWidgets.QLabel(f'Chọn ngưỡng: {threshold}')
     layout_option_selections.addWidget(label_thresh, 1, 2)
 
     segmentation_label = 'Phân vùng'
@@ -104,6 +104,7 @@ def get_input(config):
         else:
             threshold = value / 10.
             logging.info(f'Threshold is set to {threshold}')
+        label_thresh.setText(f"Chọn ngưỡng: {threshold}")
     slider_thresh.valueChanged.connect(_trigger_slider_change)
     layout_option_selections.addWidget(slider_thresh, 2, 2)
 

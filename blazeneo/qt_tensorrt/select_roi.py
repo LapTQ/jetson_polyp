@@ -61,8 +61,8 @@ class Displaying:
 
     def run(self, image):
         self.__draw_crop_box(image)
-        cv2.rectangle(image, (48, 4), (512, 35), color=(0, 0, 0), thickness=-1)
-        cv2.putText(image, 'SELECT REGION OF INTEREST', (50, 30), cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0, color=(255, 255, 255), thickness=2)
+        cv2.rectangle(image, (48, 0), (928, 43), color=(0, 180, 0), thickness=-1)
+        cv2.putText(image, 'SELECT REGION OF INTEREST [press <ESC> to submit]', (50, 30), cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0, color=(255, 255, 255), thickness=2)
         cv2.imshow(self.window_name, image)
 
     def __draw_crop_box(self, image):
