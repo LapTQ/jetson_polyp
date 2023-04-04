@@ -42,6 +42,7 @@ class Config():
         self.height = self.config["height"]
         self.n_classes = self.config["n_classes"]
         self.threshold = self.config["threshold"]
+        self.iou_threshold = self.config["iou_threshold"]
         self.preprocess_mode = self.config["preprocess_mode"]
         self.postprocess_mode = self.config["postprocess_mode"]
         self.class_labels = self.config['class_labels']
@@ -219,7 +220,7 @@ class Inferencing:
         import onnx
         import onnxruntime as ort
 
-        logging.info(f'Loading segmentation onnx model at {self.cfg.engine_file_path}')
+        logging.info(f'Loading onnx model at {self.cfg.engine_file_path}')
 
         model = onnx.load(self.cfg.engine_file_path)
         onnx.checker.check_model(model)

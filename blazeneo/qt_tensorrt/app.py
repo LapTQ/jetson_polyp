@@ -31,7 +31,7 @@ def main():
 
     preprocess = Preprocess(cfg.width, cfg.height, cfg.preprocess_mode)     # w=384,h=384,preprocess_mode=5
     preprocessing = preprocess.run
-    postprocess = Postprocess(cfg.x_start, cfg.y_start, cfg.x_end, cfg.y_end, cfg.height, cfg.width, cfg.n_classes, cfg.threshold, cfg.postprocess_mode, cfg.class_labels)    # w=1280, h=720, n_classes=2, threshold=0.6, postprocess_mode=0    # TODO fix  (app_config + Preprocess) theo model
+    postprocess = Postprocess(cfg.x_start, cfg.y_start, cfg.x_end, cfg.y_end, cfg.height, cfg.width, cfg.n_classes, cfg.threshold, cfg.iou_threshold, cfg.postprocess_mode, cfg.class_labels)    # w=1280, h=720, n_classes=2, threshold=0.6, postprocess_mode=0    # TODO fix  (app_config + Preprocess) theo model
     postprocessing = postprocess.run
 
     streamming = Streamming(cfg)

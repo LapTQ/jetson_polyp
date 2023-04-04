@@ -87,12 +87,13 @@ class Preprocess:
             image = resize(self.height, image)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             image = np.float32(image) / 255.
+            image = np.moveaxis(image, 2, 0)
 
         return image
 
 
 class Postprocess:
-    def __init__(self, x_start, y_start, x_end, y_end, height, width, n_classes, threshold, mode, class_labels):
+    def __init__(self, x_start, y_start, x_end, y_end, height, width, n_classes, threshold, iou_threshold, mode, class_labels):
         self.x_start = x_start
         self.y_start = y_start
         self.x_end = x_end
@@ -101,6 +102,7 @@ class Postprocess:
         self.width = width
         self.n_classes = n_classes
         self.threshold = threshold
+        self.iou_threshold = iou_threshold
         self.mode = mode
         self.class_labels = class_labels
     
@@ -199,15 +201,68 @@ class Postprocess:
                 cv2.line(img, (x4, y4), (x4 - line_length , y4), color, 2)
 
                 return img
+            
+            def nms(outputs, conf_thr, iou_thr):
+                print(conf_thr, iou_thr)
+                outputs = np.array([cv2.transpose(outputs[0])]) #1x8400x6
+                rows = outputs.shape[1] #8400
 
-            boxes, scores, class_ids = output[..., :4], output[..., 4], output[..., 5].astype('int32')
-            h, w = self.y_end - self.y_start, self.x_end - self.x_start
-            boxes[:, [0, 2]] *= self.width
-            boxes[:, [1, 3]] *= self.height
-            boxes = _rescale_boxes(self.height, (w, h), boxes)
-            idxs = np.where(scores > self.threshold)
-            boxes, scores, class_ids = boxes[idxs], scores[idxs], class_ids[idxs]
-            class_names = [self.class_labels[c] for c in class_ids]
+                boxes, scores, class_ids = [], [], []
+
+                for i in range(rows):
+                    classes_scores = outputs[0][i][4:] #outputs = (1, 8400, 6)
+                    (minScore, maxScore, minClassLoc, (x, maxClassIndex)) = cv2.minMaxLoc(classes_scores)
+                    if maxScore >= conf_thr:
+                        # print(outputs[0][i])
+                        box = [
+                            outputs[0][i][0] - (0.5 * outputs[0][i][2]), outputs[0][i][1] - (0.5 * outputs[0][i][3]),
+                            # outputs[0][i][2], outputs[0][i][3]] #xywh
+                            outputs[0][i][0] + outputs[0][i][2]/2, outputs[0][i][1] + outputs[0][i][3]/2]
+                        boxes.append(box)
+                        scores.append(maxScore)
+                        class_ids.append(maxClassIndex)
+
+                result_boxes = cv2.dnn.NMSBoxes(boxes, scores, conf_thr, iou_thr)
+
+                detections = []
+                for i in range(len(result_boxes)):
+                    index = result_boxes[i]
+                    box = boxes[index]
+                    detection = {
+                        'class_id': class_ids[index],
+                        'score': scores[index],
+                        'box': box }
+                    detections.append(detection)
+                return detections
+
+            
+            def parse_detection(detections):
+
+                boxes = np.array([d['box'] for d in detections])
+                if len(boxes) == 0:
+                    return [], [], []
+                ## x1y1wh to xyxy
+                scores = [d['score'] for d in detections]
+                scale = max(crop_image.shape[:2]) / 640 
+                boxes *= scale
+                boxes = np.int32(boxes)
+
+                class_names = [self.class_labels[int(d['class_id'])] for d in detections]
+
+                print([(list(b), s, c) for b, s, c in zip(boxes, scores, class_names)])
+
+                # Arange box from top to bottom #
+                indices = np.argsort(boxes[:, 3])
+                corrected_boxes = [boxes[i] for i in indices] 
+                corrected_classes = [class_names[i] for i in indices] 
+                corrected_scores = [scores[i] for i in indices]
+                #***#
+                return corrected_boxes, corrected_scores, corrected_classes
+            
+
+            detections = nms(np.expand_dims(output, axis=0), conf_thr=self.threshold, iou_thr=self.iou_threshold)
+            
+            boxes, scores, class_names = parse_detection(detections)
 
             for box, score, name in zip(boxes, scores, class_names):
                 xmin, ymin, xmax, ymax = box
